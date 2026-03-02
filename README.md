@@ -1,102 +1,145 @@
-# Brazilian E-Commerce (Olist) — Repeat GMV Growth Analytics
+# 🔁 Repeat GMV Growth Analytics — Olist E-Commerce
 
-## Overview
-This project analyzes **Repeat GMV (Gross Merchandise Value)** growth using the Brazilian Olist e-commerce dataset.  
-The goal is to understand **how much revenue comes from returning customers** and identify the main **drivers (category, state)** behind repeat purchases.
+> **North Star:** Repeat GMV & Repeat Share (Repeat GMV / Total GMV)  
+> **Question:** What drives repeat purchases — and how do we grow that share?
 
-## Business Goal (North Star)
-**North Star Metric:** Repeat GMV  
-**Supporting Metric:** Repeat Share = Repeat GMV / Total GMV
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)
+![Power BI](https://img.shields.io/badge/Power%20BI-Dashboard-yellow?logo=powerbi)
+![Status](https://img.shields.io/badge/status-completed-brightgreen)
+![Dataset](https://img.shields.io/badge/dataset-Olist%20Brazil-green)
 
-The key question:
-> “What drives Repeat GMV and how can we increase the share of revenue coming from returning customers?”
+---
 
-## Tech Stack
-- **PostgreSQL**: data ingestion, cleaning, modeling, marts
-- **Power BI**: dashboarding & insights
+## 📌 Project Overview
 
-## Data Pipeline
-1. **Raw -> Staging**
-   - Loaded CSV files into staging tables
-   - Type casting (timestamps, numeric values)
-   - Basic cleaning (trimming, null handling)
+End-to-end analytics project on the **Olist Brazilian e-commerce** dataset.  
+Focus: understand how much revenue comes from **returning customers** and identify the key **drivers (category, state)** of repeat GMV.
 
-2. **Core Model (Star Schema)**
-   - Built a star schema to ensure correct aggregations and fast BI performance
+> 🔗 Related project: [ae-ecommerce-warehouse](https://github.com/farrux05-ai/ae-ecommerce-warehouse) — delivery delay & CSAT analysis on the same dataset.
 
-   **Facts**
-   - `fact_orders` (1 row = 1 order)
-   - `fact_order_items` (1 row = 1 order item)
+---
 
-   **Dimensions**
-   - `dim_customer` (includes `customer_unique_id` for repeat tracking)
-   - `dim_product` (includes category + English translation)
-   - `dim_seller`
-   - `dim_date` + `dim_month` (monthly slicing for marts)
+## 🏗️ Data Pipeline
+```
+CSV Files
+   └── Staging          — type casting, null handling, trimming
+        └── Star Schema  — facts & dimensions
+             └── Marts   — BI-ready aggregations
+                  └── Power BI Dashboard
+```
 
-3. **Marts (BI-ready tables)**
-   - `mart_monthly_repeat_gmv` (monthly North Star trend)
-   - `mart_repeat_gmv_by_state_month`
-   - `mart_repeat_gmv_by_category_month`
+### Data Model
 
-## Metric Definitions
-- **GMV** = `price + freight_value`
-- **Repeat Order** = customer’s order_rank >= 2 (based on `customer_unique_id`)
-- **Repeat GMV** = GMV from repeat orders only
-- **Repeat Share** = Repeat GMV / Total GMV
+| Layer | Tables |
+|-------|--------|
+| **Facts** | `fact_orders` (grain: order), `fact_order_items` (grain: order item) |
+| **Dims** | `dim_customer`, `dim_product`, `dim_seller`, `dim_date`, `dim_month` |
+| **Marts** | `mart_monthly_repeat_gmv`, `mart_repeat_gmv_by_state_month`, `mart_repeat_gmv_by_category_month` |
 
-## Dashboard
-Power BI dashboard includes:
-- Repeat GMV trend over time
-- Repeat share trend
-- New vs Repeat GMV comparison
-- Top repeat categories
-- Top repeat states
+### Metric Definitions
 
-## Key Findings
-1. **Repeat share peaks at ~4% (Feb 2018)** — this is the current best benchmark month.
-2. Repeat GMV is concentrated in a few states: **SP, RJ, MG, RS, PR**.
-3. Repeat GMV is driven by a small set of categories:
-   - **bed_bath_table (~5% repeat share)**
-   - **computers_accessories (~4%)**
-   - **furniture_decor (~4%)**
-   - **sports_leisure (~4%)**
-   - **health_beauty (~2% repeat share, underperforming)**
+| Metric | Definition |
+|--------|-----------|
+| **GMV** | `price + freight_value` |
+| **Repeat Order** | `order_rank >= 2` per `customer_unique_id` |
+| **Repeat GMV** | GMV from repeat orders only |
+| **Repeat Share** | Repeat GMV / Total GMV |
 
-## Recommendations
-1. **Increase repeat share above the 4% benchmark**
-   - Launch 7/14/30-day post-purchase triggers (coupon / free shipping threshold / personalized recommendations)
-   - Track: repeat_share, repeat_gmv, returning_customers
+---
 
-2. **Double down on top repeat categories**
-   - `bed_bath_table`: bundles + returning-customer incentives
-   - Track: category repeat_share, repeat orders
+## 🔑 Key Findings
 
-3. **Cross-sell strategy for computers & furniture**
-   - Recommend accessories/add-ons to encourage a second purchase
-   - Track: 2nd purchase rate, repeat GMV by category
+| Finding | Result |
+|---------|--------|
+| Peak repeat share | **~4% (Feb 2018)** — current benchmark |
+| Top repeat states | **SP, RJ, MG, RS, PR** |
+| Best repeat category | **bed_bath_table (~5% repeat share)** |
+| Underperforming | **health_beauty (~2%)** — growth opportunity |
 
-4. **Fix low-repeat segment (health_beauty) with A/B tests**
-   - Test free shipping threshold vs. 2nd purchase coupon
-   - Track: health_beauty repeat_share and incremental repeat GMV
+**Top categories by repeat share:**
 
-5. **Geo-prioritize retention campaigns**
-   - Focus on SP/RJ/MG/RS/PR where repeat GMV is highest
-   - Track: repeat_gmv by state and repeat orders
+| Category | Repeat Share |
+|----------|-------------|
+| bed_bath_table | ~5% |
+| computers_accessories | ~4% |
+| furniture_decor | ~4% |
+| sports_leisure | ~4% |
+| health_beauty | ~2% ⚠️ |
 
-## Project Structure
-- `sql/01_staging.sql` — staging tables & cleaning
-- `sql/02_star_schema.sql` — core facts & dimensions
-- `sql/mart.sql` — marts for BI
-- `sql/99_final_checks.sql` — validation tests
-- `powerbi/olist.pbix` — dashboard file
-- `powerbi/screenshots/` — dashboard images
+---
 
-## Notes / Limitations
-- Repeat customer identification uses `customer_unique_id` (recommended for Olist data).
-- Analysis is based on delivered orders (if filtered in the model).
-- Some categories may be missing/unknown due to incomplete product labels.
+## 💡 Recommendations
 
-## Author
-Created by: **Farruxbek Valijonov**  
-LinkedIn: <www.linkedin.com/in/farruxbek-valijonov-341975322>  
+1. **Beat the 4% benchmark** — post-purchase triggers (7/14/30-day coupons, free shipping)
+2. **Double down on bed_bath_table** — bundles + returning-customer incentives
+3. **Cross-sell for computers & furniture** — accessories to drive 2nd purchase
+4. **A/B test health_beauty** — free shipping vs 2nd purchase coupon
+5. **Geo-prioritize SP/RJ/MG** — highest repeat GMV states → retention campaigns first
+
+---
+
+## 📊 Dashboard (Power BI)
+
+| Page | Content |
+|------|---------|
+| Page 1 | Repeat GMV trend + Repeat Share over time |
+| Page 2 | New vs Repeat GMV comparison |
+| Page 3 | Top repeat categories & states |
+
+📁 Screenshots: [`/powerbi/screenshots/`](./powerbi/screenshots/)
+
+---
+
+## ⚙️ How to Run
+
+### Prerequisites
+- PostgreSQL 13+
+- psql or DBeaver
+
+### Setup
+```bash
+# 1. Clone the repo
+git clone https://github.com/farrux05-ai/ae-ecommerce-sla
+cd ae-ecommerce-sla
+
+# 2. Load data into PostgreSQL
+# Import Olist CSV files into your database
+
+# 3. Run SQL files in order
+psql -U your_user -d your_db -f sql/01_staging.sql
+psql -U your_user -d your_db -f sql/02_star_schema.sql
+psql -U your_user -d your_db -f sql/mart.sql
+psql -U your_user -d your_db -f sql/99_final_checks.sql
+```
+
+---
+
+## 📁 Project Structure
+```
+ae-ecommerce-sla/
+├── sql/
+│   ├── 01_staging.sql        # staging tables & cleaning
+│   ├── 02_star_schema.sql    # facts & dimensions
+│   ├── mart.sql              # BI-ready marts
+│   └── 99_final_checks.sql   # validation tests
+├── powerbi/
+│   ├── olist.pbix            # dashboard file
+│   └── screenshots/          # dashboard images
+└── README.md
+```
+
+---
+
+## ⚠️ Limitations
+
+- Repeat detection uses `customer_unique_id` (Olist recommended approach)
+- Analysis limited to **delivered orders** only
+- Some products have missing category labels
+
+---
+
+## 👤 Author
+
+**Farruxbek Valijonov** — Analytics Engineer  
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin)](www.linkedin.com/in/farrux-valijonov-341975322)
+[![GitHub](https://img.shields.io/badge/GitHub-farrux05--ai-black?logo=github)](https://github.com/farrux05-ai)
