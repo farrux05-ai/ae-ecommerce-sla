@@ -86,7 +86,9 @@ CSV Files
 | Page 2 | New vs Repeat GMV comparison |
 | Page 3 | Top repeat categories & states |
 
-📁 Screenshots: [`/powerbi/screenshots/`](./powerbi/screenshots/)
+![Dashboard](./powerbi/screenshots/overview.png)
+![Dashboard](./powerbi/screenshots/drivers.png)
+![Dashboard](./powerbi/screenshots/insights.png)
 
 ---
 
